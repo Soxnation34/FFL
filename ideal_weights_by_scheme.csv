@@ -1,0 +1,26 @@
+Position,Position_Code,True_34,Eagle_34,Under_43,Over_43,Offense
+Nose Tackle,NT,325,312,,,
+Right Defensive Tackle,RDT,,,315,309,
+Left Defensive Tackle,LDT,,,306,316,
+Right End,RDE,295,305,280,263,
+Left End,LDE,304,312,275,270,
+Strong-Side Linebacker,SLB,258,256,251,245,
+Weak-Side Linebacker,WLB,262,261,234,246,
+Middle Linebacker,MLB,,,238,241,
+Strong Inside Linebacker,SILB,242,245,,,
+Weak Inside Linebacker,WILB,240,245,,,
+Right Cornerback,RCB,197,197,193,193,
+Left Cornerback,LCB,197,197,193,193,
+Strong Safety,SS,208,208,210,206,
+Free Safety,FS,206,206,206,206,
+Quarterback,QB,,,,,219
+Running Back,RB,,,,,217
+Fullback,FB,,,,,242
+Tight End,TE,,,,,255
+Split End,SE,,,,,197
+Flanker,FL,,,,,195
+Left Tackle,LT,,,,,311
+Left Guard,LG,,,,,309
+Center,C,,,,,291
+Right Guard,RG,,,,,314
+Right Tackle,RT,,,,,319
