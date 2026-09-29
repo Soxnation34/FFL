@@ -69,6 +69,21 @@ active free agency) window and re-run the league-data export to
 directly — ask to have the rest of the suite (and the Draft Board's FFL tab) wired
 up at that time.
 
+## Not yet ported: the game-log / Play Call Lab pipeline
+
+CFL also has a play-call analysis pipeline that does not touch `cfl.db` at all. It parses
+saved FOF8 game-log HTML pages (`Game Logs/<Team>-<Year>-W<n>.html`) into a separate
+`game_logs.db` and matches the user's offensive snaps to named plays in their playbook:
+`game_log_parser.js`, `play_attribution.js`, `build_game_logs_db.js`, `add_week.js`,
+`export_play_success_report.js`, `build_play_success_xlsx.ps1`, `build_fgo.js`, and the
+`play_call_lab_artifact/` viewer.
+
+FFL has neither input yet: no `Game Logs/` folder of Pittsburgh game logs and no
+`Playbooks/` folder with a parsed Pittsburgh playbook (CFL's is `WestCoastRun_parsed.json`).
+The scripts also hardcode `Philadelphia` and `WestCoastRun`. **To unlock**: save Pittsburgh's
+weekly game logs into `Game Logs/` and add Pittsburgh's `.fbk` playbook (parsed) under
+`Playbooks/`, then port with `Philadelphia`→`Pittsburgh` and the playbook name swapped.
+
 ## Known limitations of the source data
 
 Same caveats as CFL's export — see `../CFL/README.md`'s "Known limitations"
