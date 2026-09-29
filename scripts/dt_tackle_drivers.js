@@ -155,7 +155,11 @@ function predictTkl(rd, pd) { return mTkl.beta[0] + mTkl.beta[1] * rd + mTkl.bet
 function predictPct(rd, pd) { return mPct.beta[0] + mPct.beta[1] * rd + mPct.beta[2] * pd; }
 
 // --- Step 3: apply to target prospect using scout Low/High range midpoints ---
-const prospect = db.prepare(`
+// rookies/draft_personal only exist in a draft-window export; skip this step when they're absent.
+const draftTables = db.prepare(
+  `SELECT name FROM sqlite_master WHERE type = 'table' AND name IN ('rookies', 'draft_personal')`
+).all();
+const prospect = draftTables.length < 2 ? undefined : db.prepare(`
   SELECT r.Player_ID, r.Last_Name, r.First_Name, r.Weight, r.Grade,
          dp."Low_Run_Defense" AS rd_lo, dp."High_Run_Defense" AS rd_hi,
          dp."Low_Play_Diagnosis" AS pd_lo, dp."High_Play_Diagnosis" AS pd_hi
@@ -171,6 +175,8 @@ if (prospect) {
   console.log(`  Play_Diagnosis range ${prospect.pd_lo}-${prospect.pd_hi} (mid ${pdMid})`);
   console.log(`  Projected Tackles/Game = ${predictTkl(rdMid, pdMid).toFixed(3)}`);
   console.log(`  Projected TkPct        = ${predictPct(rdMid, pdMid).toFixed(2)}%`);
+} else if (draftTables.length < 2) {
+  console.log(`\nSkipping prospect projection: rookies/draft_personal tables not in ffl.db (re-export during the draft window).`);
 } else {
   console.log(`\nPlayer_ID ${targetPid} not found in rookies/draft_personal.`);
 }
