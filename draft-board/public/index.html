@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FFL Draft Board</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<div id="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark brand-mark-text" aria-label="FFL">FFL</div>
+      <div>
+        <div class="brand-title">FFL Draft Board</div>
+        <div class="brand-sub">Pittsburgh &middot; DraftAnalyzer replica &middot; 4-3 Over</div>
+      </div>
+    </div>
+    <nav id="nav"></nav>
+    <div class="sidebar-footer">
+      <div id="statusBanner" class="status-banner"></div>
+    </div>
+  </aside>
+
+  <main class="content">
+    <header class="toolbar">
+      <div class="toolbar-title">
+        <h1 id="groupLabel">Loading…</h1>
+        <span id="groupCount" class="count-pill"></span>
+      </div>
+      <div class="toolbar-controls">
+        <input id="search" type="text" placeholder="Search name or college…" class="search-input" />
+        <label class="toggle">
+          <input type="checkbox" id="hideDrafted" checked>
+          <span>Hide drafted</span>
+        </label>
+        <label class="toggle" title="Show only the prospects you have starred">
+          <input type="checkbox" id="favoritesOnly">
+          <span>&#9733; Favorites only</span>
+        </label>
+        <div id="positionFilterWrap" class="dropdown-wrap" hidden>
+          <button id="positionFilterBtn" class="btn-refresh" type="button">Positions ▾</button>
+          <div id="positionFilterPanel" class="dropdown-panel" hidden>
+            <div class="dropdown-panel-actions">
+              <button id="positionFilterAll" type="button">Select all</button>
+              <button id="positionFilterNone" type="button">Clear all</button>
+            </div>
+            <div id="positionFilterList" class="dropdown-panel-list"></div>
+          </div>
+        </div>
+        <button id="refreshBtn" class="btn-refresh" title="Re-fetch from ffl.db and the drafted-player source">⟳ Refresh</button>
+        <input id="draftedFile" type="file" accept=".csv,.txt,text/csv,text/plain" hidden>
+        <button id="uploadDraftedBtn" class="btn-refresh" title="Upload a list of drafted players (DraftOrder.csv, a DraftListPIT.csv export, or one name per line). They get a Drafted badge and drop out of the Priority Draft List and its export.">⇧ Upload Drafted</button>
+        <button id="clearDraftedBtn" class="btn-refresh" hidden title="Forget the uploaded drafted list and fall back to the UtilitySuite DraftOrder.csv">✕ Clear Drafted</button>
+        <button id="resetListBtn" class="btn-refresh" hidden title="Restore default order and bring back every removed player">↺ Reset List</button>
+        <button id="exportListBtn" class="btn-export" hidden title="Download the currently filtered/sorted list as DraftListPIT.csv">⇩ Export Draft List</button>
+      </div>
+    </header>
+
+    <div id="modelNote" class="model-note" hidden></div>
+
+    <div class="table-wrap">
+      <table id="board">
+        <thead id="boardHead"></thead>
+        <tbody id="boardBody"></tbody>
+      </table>
+    </div>
+  </main>
+
+  <div id="drawerBackdrop" class="drawer-backdrop" hidden></div>
+  <aside id="drawer" class="drawer" hidden>
+    <div class="drawer-nav">
+      <button id="drawerPrev" class="drawer-nav-btn" aria-label="Previous prospect">&larr; Prev</button>
+      <button id="drawerNext" class="drawer-nav-btn" aria-label="Next prospect">Next &rarr;</button>
+    </div>
+    <button id="drawerClose" class="drawer-close" aria-label="Close">×</button>
+    <div id="drawerContent"></div>
+  </aside>
+</div>
+<script src="/app.js"></script>
+</body>
+</html>

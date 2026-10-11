@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "ffl-draft-board",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["draft-board/server.js"],
+      "port": 4700
+    }
+  ]
+}
