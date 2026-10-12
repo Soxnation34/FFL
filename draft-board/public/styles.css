@@ -149,6 +149,9 @@ tbody tr.drafted { opacity: 0.45; }
 .star-btn.star-lg { font-size: 22px; padding-right: 10px; vertical-align: baseline; }
 tbody tr.favorite { background: rgba(240,195,62,0.07); box-shadow: inset 3px 0 0 #f0c33e; }
 tbody tr.favorite:hover { background: rgba(240,195,62,0.12); }
+.toggle[hidden], .team-select[hidden] { display: none; }
+.team-select { background: var(--surface-2); color: var(--text-primary); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 7px 10px; font-size: 13px; max-width: 220px; }
+.team-select:hover { background: var(--surface-3); }
 .drag-grip { color: var(--text-muted); cursor: grab; padding: 0 4px 0 0; font-size: 13px; line-height: 1; letter-spacing: -2px; user-select: none; }
 tbody tr[draggable="true"] { cursor: grab; }
 tbody tr.dragging { opacity: 0.35; cursor: grabbing; }

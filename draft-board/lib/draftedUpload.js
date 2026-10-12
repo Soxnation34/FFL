@@ -62,6 +62,7 @@ function parse(text, prospects) {
   const dateCol = pick(['birthdate', 'birth date', 'dob']);
   const draftedCol = hIdx['drafted'];
   const orderCol = pick(['draftedorder', 'drafted order', 'pick', 'order', 'overall']);
+  const teamCol = pick(['team', 'drafting team', 'drafted by', 'drafted team']);
 
   const dataLines = hasHeader ? lines.slice(1) : lines;
   dataLines.forEach((line, i) => {
@@ -69,18 +70,21 @@ function parse(text, prospects) {
     let name;
     let birthdate = null;
     let order = null;
+    let team = null;
     if (hasHeader) {
       name = f[nameCol];
       if (dateCol != null) birthdate = f[dateCol];
       // DraftOrder.csv lists the whole class with a Drafted flag; keep only the drafted rows.
       if (draftedCol != null && !/^(true|1|yes|y)$/i.test(f[draftedCol] || '')) return;
       if (orderCol != null && f[orderCol] !== '' && !isNaN(Number(f[orderCol]))) order = Number(f[orderCol]);
+      if (teamCol != null && f[teamCol]) team = f[teamCol];
     } else {
       // FOF8 draft-recap style: "Pick #4 - Pittsburgh - McIntyre, Marquis, QB, Oklahoma State"
-      const recap = line.match(/^pick\s*#?\s*(\d+)\s*-\s*.+?\s*-\s*([^,]+),\s*([^,]+)/i);
+      const recap = line.match(/^pick\s*#?\s*(\d+)\s*-\s*(.+?)\s*-\s*([^,]+),\s*([^,]+)/i);
       if (recap) {
         order = Number(recap[1]);
-        name = `${recap[3].trim()} ${recap[2].trim()}`;
+        team = recap[2].trim();
+        name = `${recap[4].trim()} ${recap[3].trim()}`;
       } else {
         // Headerless: an optional numeric pick field plus the first field that looks like a name.
         const nums = f.filter(x => /^\d+$/.test(x));
@@ -109,7 +113,7 @@ function parse(text, prospects) {
     if (!hit) { unmatched.push(name); return; }
     if (seen.has(hit.playerId)) return;
     seen.add(hit.playerId);
-    entries.push({ playerId: hit.playerId, identityKey: hit.identityKey, name: hit.player, order });
+    entries.push({ playerId: hit.playerId, identityKey: hit.identityKey, name: hit.player, order, team });
   });
   return { entries, unmatched, ambiguous, rows: dataLines.length };
 }

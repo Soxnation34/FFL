@@ -61,6 +61,17 @@ export from an earlier draft cycle** (0 of 809 current prospects match it) — t
 reports this live. Re-export `DraftOrder.csv` from DraftAnalyzer during the actual live draft and
 picks will start showing up automatically, no restart needed.
 
+## Draft Results page (added 2026-10-12)
+
+**Draft Results** (second item under Tools) lists every drafted prospect in pick order with the team
+that took him, built from whatever was last loaded with **Upload Drafted**. A **team dropdown** in
+the toolbar filters to one team's picks (each team shows its pick count); search, the ★ Favorites
+only toggle, column sorting, and the prospect card all work here too. The team comes from the
+upload itself, so use a file that names it: FOF8 recap lines (`Pick #4 - Pittsburgh - Last, First,
+Pos, College`) or a CSV with a `Team` column. A plain name list has no teams, so the page still
+lists the players but the dropdown stays empty. Source: `GET /api/drafted` in `server.js`; the team is
+stored per pick in `drafted-players.json` by `lib/draftedUpload.js`.
+
 ## Favorites / star marks (added 2026-10-11)
 
 Click the **☆** next to any prospect's name — on the Priority Draft List, any position board, or in

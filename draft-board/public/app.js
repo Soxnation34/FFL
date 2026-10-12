@@ -9,6 +9,8 @@ const state = {
   search: '',
   hideDrafted: true,
   favoritesOnly: false,
+  draftTeam: '',
+  draftTeams: [],
   drawerPlayerId: null,
   // Priority-list-only view/export filter — Set of positionGroup codes to HIDE. Empty = show all.
   priorityPositionExcluded: new Set(),
@@ -54,7 +56,24 @@ const COLUMNS = [
 for (const c of COLUMNS) if (!c.format) c.format = v => (v == null ? '—' : String(v));
 
 const PRIORITY_KEY = 'PRIORITY';
+const DRAFTED_KEY = 'DRAFTED';
+const DRAFTED_COLUMNS = [
+  { key: 'pick', label: 'Pick', num: true, val: r => r.pick, format: v => (v == null ? '—' : '#' + v) },
+  { key: 'draftedTeam', label: 'Team', num: false, val: r => r.draftedTeam, format: v => v || '—' },
+  { key: 'player', label: 'Name', num: false, val: r => r.player },
+  { key: 'nativePosition', label: 'Pos', num: false, val: r => r.nativePosition },
+  { key: 'ratedPosition', label: 'Rated', num: false, val: r => r.ratedPosition },
+  { key: 'height', label: 'Ht', num: true, val: r => r.height, format: v => fmt.height(v) },
+  { key: 'weight', label: 'Wt', num: true, val: r => r.weight, format: fmt.int },
+  { key: 'dash', label: '40', num: true, val: r => r.dash, format: fmt.dash },
+  { key: 'developed', label: 'Dev%', num: true, val: r => r.developed, format: fmt.int },
+  { key: 'volatility', label: 'Vol', num: true, val: r => r.volatility, format: fmt.int },
+  { key: 'rating', label: 'Rating', num: true, val: r => r.rating, format: fmt.f2 },
+  { key: 'college', label: 'College', num: false, val: r => r.college },
+];
+for (const c of DRAFTED_COLUMNS) if (!c.format) c.format = v => (v == null ? '—' : String(v));
 function getColumns() {
+  if (state.currentKey === DRAFTED_KEY) return DRAFTED_COLUMNS;
   if (state.currentKey !== PRIORITY_KEY) return COLUMNS;
   return [{ key: '__controls', label: '', num: false, val: () => '' }, ...COLUMNS];
 }
@@ -65,7 +84,7 @@ async function fetchGroups() {
   state.groups = await res.json();
 }
 async function fetchBoard(key) {
-  const url = key === PRIORITY_KEY ? '/api/priority-list' : `/api/board/${key}`;
+  const url = key === PRIORITY_KEY ? '/api/priority-list' : key === DRAFTED_KEY ? '/api/drafted' : `/api/board/${key}`;
   const res = await fetch(url);
   if (!res.ok) {
     let msg = `Server returned ${res.status}`;
@@ -75,6 +94,17 @@ async function fetchBoard(key) {
   const data = await res.json();
   if (!Array.isArray(data.players)) throw new Error('Malformed response from server (no players array)');
   state.players = data.players;
+  if (key === DRAFTED_KEY) {
+    state.draftTeams = data.teams || [];
+    state.draftHasTeams = !!data.hasTeams;
+    renderTeamFilter();
+  }
+}
+function renderTeamFilter() {
+  const sel = document.getElementById('teamFilter');
+  if (!state.draftTeams.some(t => t.name === state.draftTeam)) state.draftTeam = '';
+  sel.innerHTML = `<option value="">All teams (${state.players.length})</option>` + state.draftTeams.map(t => `<option value="${t.name.replace(/"/g, '&quot;')}">${t.name} (${t.count})</option>`).join('');
+  sel.value = state.draftTeam;
 }
 async function fetchStatus() {
   const res = await fetch('/api/status');
@@ -95,7 +125,7 @@ function sortPriority(key) {
   const col = COLUMNS.find(c => c.key === key);
   if (!col) return;
   if (state.sortKey === key) state.sortDir *= -1;
-  else { state.sortKey = key; state.sortDir = key === 'player' || key === 'college' || key === 'nativePosition' || key === 'ratedPosition' ? 1 : -1; }
+  else { state.sortKey = key; state.sortDir = key === 'player' || key === 'college' || key === 'nativePosition' || key === 'ratedPosition' || key === 'draftedTeam' ? 1 : -1; }
   state.players.sort((a, b) => {
     const av = col.val(a), bv = col.val(b);
     if (av == null && bv == null) return a.player.localeCompare(b.player);
@@ -321,7 +351,8 @@ function getFilteredSorted() {
   const q = state.search.trim().toLowerCase();
   const isPriority = state.currentKey === PRIORITY_KEY;
   let rows = state.players.filter(r => {
-    if (state.hideDrafted && r.draftStatus?.drafted) return false;
+    if (state.currentKey === DRAFTED_KEY) { if (state.draftTeam && r.draftedTeam !== state.draftTeam) return false; }
+    else if (state.hideDrafted && r.draftStatus?.drafted) return false;
     if (state.favoritesOnly && !r.favorite) return false;
     if (q && !(r.player.toLowerCase().includes(q) || (r.college || '').toLowerCase().includes(q))) return false;
     if (isPriority && state.priorityPositionExcluded.has(r.positionGroup)) return false;
@@ -336,7 +367,8 @@ function getFilteredSorted() {
     return rows;
   }
 
-  const sortCol = COLUMNS.find(c => c.key === state.sortKey) || COLUMNS.find(c => c.key === 'rating');
+  const colSet = getColumns();
+  const sortCol = colSet.find(c => c.key === state.sortKey) || colSet.find(c => c.key === 'rating');
   rows.sort((a, b) => {
     const av = sortCol.val(a);
     const bv = sortCol.val(b);
@@ -368,7 +400,7 @@ function renderTable() {
       if (isPriority) sortPriority(key);
       else {
         if (state.sortKey === key) state.sortDir *= -1;
-        else { state.sortKey = key; state.sortDir = key === 'player' || key === 'college' || key === 'nativePosition' || key === 'ratedPosition' ? 1 : -1; }
+        else { state.sortKey = key; state.sortDir = key === 'player' || key === 'college' || key === 'nativePosition' || key === 'ratedPosition' || key === 'draftedTeam' ? 1 : -1; }
         renderTable();
       }
     });
@@ -378,12 +410,14 @@ function renderTable() {
   document.getElementById('groupCount').textContent = `${rows.length} shown / ${state.players.length} total`;
 
   if (!rows.length) {
-    body.innerHTML = `<tr><td colspan="${columns.length}"><div class="empty-state">No prospects match the current filters.</div></td></tr>`;
+    const noneYet = state.currentKey === DRAFTED_KEY && !state.players.length;
+    body.innerHTML = `<tr><td colspan="${columns.length}"><div class="empty-state">${noneYet ? 'No drafted players yet. Click <b>Upload Drafted</b> and choose your drafted-players file.' : 'No prospects match the current filters.'}</div></td></tr>`;
     return;
   }
 
   body.innerHTML = rows.map((r, i) => {
-    const draftedCls = (r.draftStatus?.drafted ? ' drafted' : '') + (r.favorite ? ' favorite' : '');
+    const isResults = state.currentKey === DRAFTED_KEY;
+    const draftedCls = (r.draftStatus?.drafted && !isResults ? ' drafted' : '') + (r.favorite ? ' favorite' : '');
     const cells = columns.map(c => {
       if (c.key === '__controls') {
         const isFirst = i === 0, isLast = i === rows.length - 1;
@@ -399,8 +433,8 @@ function renderTable() {
       let content = display;
       if (c.key === 'player') {
         content = `${starButtonHtml(r)}<span class="cell-player">${display}</span>`;
-        if (r.draftStatus?.drafted) {
-          content += ` <span class="chip chip-drafted">Drafted${r.draftStatus.draftedOrder != null ? ' #' + r.draftStatus.draftedOrder : ''}</span>`;
+        if (r.draftStatus?.drafted && !isResults) {
+          content += ` <span class="chip chip-drafted" title="${r.draftStatus.team ? 'Drafted by ' + r.draftStatus.team : 'Drafted'}">Drafted${r.draftStatus.draftedOrder != null ? ' #' + r.draftStatus.draftedOrder : ''}</span>`;
         } else if (r.untested) {
           content += ` <span class="chip chip-excluded" title="No combine 40-time on file — DraftAnalyzer's degraded no-combine formula was used">Not combine-tested</span>`;
         }
@@ -686,8 +720,8 @@ function navigateDrawer(delta) {
 // ---------- Group selection ----------
 async function selectGroup(key) {
   state.currentKey = key;
-  state.sortKey = 'rating';
-  state.sortDir = -1;
+  state.sortKey = key === DRAFTED_KEY ? 'pick' : 'rating';
+  state.sortDir = key === DRAFTED_KEY ? 1 : -1;
   renderNav();
   const g = state.groups.find(x => x.key === key);
   document.getElementById('groupLabel').textContent = g.label;
@@ -696,6 +730,8 @@ async function selectGroup(key) {
   document.getElementById('exportListBtn').hidden = key !== PRIORITY_KEY;
   document.getElementById('positionFilterWrap').hidden = key !== PRIORITY_KEY;
   document.getElementById('positionFilterPanel').hidden = true;
+  document.getElementById('teamFilter').hidden = key !== DRAFTED_KEY;
+  document.getElementById('hideDraftedWrap').hidden = key === DRAFTED_KEY;
   if (key === PRIORITY_KEY) state.priorityPositionExcluded = new Set();
 
   document.getElementById('boardBody').innerHTML = `<tr><td colspan="${getColumns().length}"><div class="empty-state">Loading…</div></td></tr>`;
@@ -721,6 +757,7 @@ function wireControls() {
   document.getElementById('search').addEventListener('input', e => { state.search = e.target.value; renderTable(); });
   document.getElementById('hideDrafted').addEventListener('change', e => { state.hideDrafted = e.target.checked; renderTable(); });
   document.getElementById('favoritesOnly').addEventListener('change', e => { state.favoritesOnly = e.target.checked; renderTable(); });
+  document.getElementById('teamFilter').addEventListener('change', e => { state.draftTeam = e.target.value; renderTable(); });
   document.getElementById('drawerClose').addEventListener('click', closeDrawer);
   document.getElementById('drawerBackdrop').addEventListener('click', closeDrawer);
   document.getElementById('drawerPrev').addEventListener('click', () => navigateDrawer(-1));

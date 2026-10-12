@@ -102,7 +102,7 @@ const server = http.createServer(async (req, res) => {
       const status = loadDraftStatus();
       let matched = 0, total = 0, drafted = 0;
       for (const g of pools.listGroups()) {
-        if (g.key === 'PRIORITY') continue; // every prospect already counted via its real position board
+        if (g.key === 'PRIORITY' || g.key === 'DRAFTED') continue; // every prospect already counted via its real position board
         const board = pools.getBoard(g.key);
         for (const c of board) {
           total++;
@@ -127,6 +127,23 @@ const server = http.createServer(async (req, res) => {
         drafted,
         stale: status.source === 'csv' && status.available && total > 0 && matched / total < 0.5,
       });
+    }
+
+    // ---------- Draft Results (who was drafted, by which team) ----------
+    if (req.method === 'GET' && p === '/api/drafted') {
+      const status = loadDraftStatus();
+      const favs = favorites.load();
+      const players = [];
+      for (const pl of pools.getAllProspects()) {
+        const info = draftedInfoFor(pl.identityKey, status);
+        if (!info.drafted) continue;
+        players.push({ ...pl, draftStatus: info, favorite: favs.has(pl.playerId), pick: info.draftedOrder, draftedTeam: info.team });
+      }
+      players.sort((a, b) => (a.pick ?? 1e9) - (b.pick ?? 1e9) || a.player.localeCompare(b.player));
+      const counts = new Map();
+      for (const pl of players) if (pl.draftedTeam) counts.set(pl.draftedTeam, (counts.get(pl.draftedTeam) || 0) + 1);
+      const teams = [...counts.entries()].map(([name, count]) => ({ name, count })).sort((a, b) => a.name.localeCompare(b.name));
+      return sendJson(res, 200, { players, teams, source: status.source, hasTeams: teams.length > 0 });
     }
 
     // ---------- Favorites (star marks) ----------

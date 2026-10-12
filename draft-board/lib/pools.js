@@ -311,6 +311,7 @@ const BOARDS = {
 function listGroups() {
   const groups = Object.entries(BOARDS).map(([key, b]) => ({ key, label: b.label, family: b.family, hasModel: true, modelNote: null }));
   groups.unshift({ key: 'PRIORITY', label: 'Priority Draft List', family: 'Tools', hasModel: true, modelNote: null });
+  groups.splice(1, 0, { key: 'DRAFTED', label: 'Draft Results', family: 'Tools', hasModel: false, modelNote: null });
   return groups;
 }
 

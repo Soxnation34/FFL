@@ -40,7 +40,7 @@ function loadDraftStatus() {
   const upload = draftedUpload.load();
   if (upload && upload.entries.length) {
     const map = new Map();
-    for (const e of upload.entries) map.set(e.identityKey, { drafted: true, draftedOrder: e.order ?? null });
+    for (const e of upload.entries) map.set(e.identityKey, { drafted: true, draftedOrder: e.order ?? null, team: e.team ?? null });
     return {
       available: true, source: 'upload', path: draftedUpload.STORE_PATH, map,
       pickCount: upload.entries.length, totalRows: upload.rows || upload.entries.length,
@@ -101,7 +101,7 @@ function loadCsvStatus() {
 function draftedInfoFor(identityKey, status) {
   if (!identityKey || !status.available) return { drafted: false, draftedOrder: null, matched: false };
   const hit = status.map.get(identityKey);
-  return hit ? { drafted: hit.drafted, draftedOrder: hit.draftedOrder, matched: true } : { drafted: false, draftedOrder: null, matched: false };
+  return hit ? { drafted: hit.drafted, draftedOrder: hit.draftedOrder, team: hit.team ?? null, matched: true } : { drafted: false, draftedOrder: null, team: null, matched: false };
 }
 
 module.exports = { loadDraftStatus, draftedInfoFor, CSV_PATH };
